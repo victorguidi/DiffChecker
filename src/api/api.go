@@ -1,7 +1,7 @@
 package api
 
 import (
-	// "encoding/json"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -81,7 +81,7 @@ func (api *API) Compare(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = CompareFiles(f...)
+	final, err := CompareFiles(f...)
 	if err != nil {
 		http.Error(w, "Error comparing files", http.StatusInternalServerError)
 		return
@@ -89,6 +89,5 @@ func (api *API) Compare(w http.ResponseWriter, r *http.Request) {
 
 	// Return the changes as json
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	// json.NewEncoder(w).Encode(&final)
+	json.NewEncoder(w).Encode(&final)
 }

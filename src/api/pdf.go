@@ -2,11 +2,12 @@ package api
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
-	"sync"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 type Changes struct {
@@ -39,70 +40,66 @@ func CompareFiles(files ...string) (*[]Change, error) {
 	}
 
 	var changes []Change
-	var mu sync.Mutex
-	wg := sync.WaitGroup{}
-	wg.Add(len(commands))
 
-	cmd := exec.Command("diff", commands[0], commands[1])
-	stdout, err := cmd.StdoutPipe()
+	// Use bash to execute the command with process substitution
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("diff %s %s", commands[0], commands[1]))
+
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatal(err)
+		if err.Error() == "exit status 1" {
+
+			changes = parseDiff(string(output)).Changes
+
+		} else {
+			log.Fatal(err)
+		}
+	} else {
+		fmt.Println("No differences found.")
 	}
 
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-
-	output, err := io.ReadAll(stdout)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-
-	// Process the output as needed, for example, printing it
-	fmt.Println(string(output))
 	return &changes, nil
-	for i, command := range commands {
-		go func(command string, pos int, wg *sync.WaitGroup) {
-			defer wg.Done()
-			pos++
-			if pos%2 != 0 {
-				fmt.Println("Comparing files...")
+}
 
-				cmd := exec.Command("diff", commands[pos-1], commands[pos])
-				stdout, err := cmd.StdoutPipe()
-				if err != nil {
-					log.Fatal(err)
-				}
+func parseDiff(diffOutput string) Changes {
 
-				if err := cmd.Start(); err != nil {
-					log.Fatal(err)
-				}
+	/*
+		  This is a example of diff Output:
+					19c19 -> this is the line number of the first file and then the second number is the line number of the second file
+		  < another digit. If the dice is fair all six outcomes X = {1, . . . , 6} are equally likely to occur, hence we -> < represents what was
+		  ---
+		  > another digit. If the dice is fair all six outcomes X = {1, . . . . . , 6} are equally likely to occur, hence we -> > represents what is now
+	*/
 
-				output, err := io.ReadAll(stdout)
-				if err != nil {
-					log.Fatal(err)
-				}
+	lines := strings.Split(diffOutput, "\n")
 
-				if err := cmd.Wait(); err != nil {
-					log.Fatal(err)
-				}
+	var changes Changes
+	var currentChange Change
 
-				// Process the output as needed, for example, printing it
-				fmt.Println(string(output))
-
-				// Modify 'changes' as needed
-				mu.Lock()
-				defer mu.Unlock()
-				changes = append(changes, Change{Change: string(output), Line: 0})
+	for _, line := range lines {
+		isChange, currentLines := getLineNumber(line)
+		if isChange {
+			for _, currentLine := range currentLines {
+				lineNumber, _ := strconv.Atoi(currentLine)
+				currentChange.Line = lineNumber
 			}
-		}(command, i, &wg)
+		}
 	}
 
-	wg.Wait()
+	if currentChange.Change != "" {
+		changes.Changes = append(changes.Changes, currentChange)
+	}
 
-	return &changes, nil
+	return changes
+}
+
+func isChangeLine(line string) bool {
+	return strings.HasPrefix(line, "<") || strings.HasPrefix(line, ">") || regexp.MustCompile(`^\d+[a-c]\d+$`).MatchString(line)
+}
+
+func getLineNumber(line string) (bool, []string) {
+	// This regex will get the number of the line. Example -> 19c19 it must get the two numbers, sometime is might be 19,19c19
+	if regexp.MustCompile(`(?:^|[^<>])(\d+)`).MatchString(line) {
+		return true, regexp.MustCompile(`(?:^|[^<>])(\d+)`).FindAllString(line, -1)
+	}
+	return false, nil
 }
