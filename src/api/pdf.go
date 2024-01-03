@@ -62,14 +62,6 @@ func CompareFiles(files ...string) (*[]Change, error) {
 
 func parseDiff(diffOutput string) Changes {
 
-	/*
-		  This is a example of diff Output:
-					19c19 -> this is the line number of the first file and then the second number is the line number of the second file
-		  < another digit. If the dice is fair all six outcomes X = {1, . . . , 6} are equally likely to occur, hence we -> < represents what was
-		  ---
-		  > another digit. If the dice is fair all six outcomes X = {1, . . . . . , 6} are equally likely to occur, hence we -> > represents what is now
-	*/
-
 	lines := strings.Split(diffOutput, "\n")
 
 	var changes Changes
