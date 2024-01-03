@@ -1,97 +1,52 @@
 package api
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"os/exec"
-	"regexp"
-	"strconv"
-	"strings"
+	"mime/multipart"
+	"time"
+
+	"github.com/google/uuid"
 )
 
+type Response struct {
+	Id      string   `json:"id"`
+	Files   []string `json:"files"`
+	Date    string   `json:"date"`
+	Changes []Change `json:"changes"`
+}
+
 type Changes struct {
-	OriginalDoc string   `json:"originalDoc"`
-	CompareDoc  string   `json:"compareDoc"`
-	Changes     []Change `json:"changes"`
+	Original   Change `json:"original"`
+	Difference Change `json:"difference"`
 }
 
 type Change struct {
-	Change string
-	Line   int
+	Line    int    `json:"line"`
+	Content string `json:"content"`
 }
 
-func CompareFiles(files ...string) (*[]Change, error) {
-
-	defer func() {
-		for _, file := range files {
-			os.Remove(file)
-		}
-	}()
-
-	commands := []string{}
-	for _, file := range files {
-		if _, err := os.Stat(file); os.IsNotExist(err) {
-			fmt.Println(err.Error())
-			return nil, err
-		}
-
-		commands = append(commands, fmt.Sprintf("<(pdftotext -layout %s /dev/stdout)", file))
-	}
-
-	var changes []Change
-
-	// Use bash to execute the command with process substitution
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("diff %s %s", commands[0], commands[1]))
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		if err.Error() == "exit status 1" {
-
-			changes = parseDiff(string(output)).Changes
-
+// This function get all the files in the API and save them in the directory for use later
+func SaveFiles(files []*multipart.FileHeader) ([]Response, error) {
+	// Get the files from the API
+	var responses []Response
+	for i, file := range files {
+		var response Response
+		if i%2 == 0 {
+			response.Id = uuid.New().String()
+			response.Files = append(response.Files, file.Filename)
+			response.Date = time.Now().String()
+			responses = append(responses, response)
 		} else {
-			log.Fatal(err)
-		}
-	} else {
-		fmt.Println("No differences found.")
-	}
-
-	return &changes, nil
-}
-
-func parseDiff(diffOutput string) Changes {
-
-	lines := strings.Split(diffOutput, "\n")
-
-	var changes Changes
-	var currentChange Change
-
-	for _, line := range lines {
-		isChange, currentLines := getLineNumber(line)
-		if isChange {
-			for _, currentLine := range currentLines {
-				lineNumber, _ := strconv.Atoi(currentLine)
-				currentChange.Line = lineNumber
-			}
+			responses[len(responses)-1].Files = append(responses[len(responses)-1].Files, file.Filename)
 		}
 	}
 
-	if currentChange.Change != "" {
-		changes.Changes = append(changes.Changes, currentChange)
-	}
+	// The Directory for saving the files is on files
 
-	return changes
+	// TODO: Save the files
+	return responses, nil
 }
 
-func isChangeLine(line string) bool {
-	return strings.HasPrefix(line, "<") || strings.HasPrefix(line, ">") || regexp.MustCompile(`^\d+[a-c]\d+$`).MatchString(line)
-}
-
-func getLineNumber(line string) (bool, []string) {
-	// This regex will get the number of the line. Example -> 19c19 it must get the two numbers, sometime is might be 19,19c19
-	if regexp.MustCompile(`(?:^|[^<>])(\d+)`).MatchString(line) {
-		return true, regexp.MustCompile(`(?:^|[^<>])(\d+)`).FindAllString(line, -1)
-	}
-	return false, nil
+// If there is no defference it will return nil too
+func CompareTwoFiles() (*Response, error) {
+	return nil, nil
 }

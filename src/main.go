@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	api := api.New(":5000")
-	api.HandleFunc("/compare", api.Compare)
-	api.Start()
+	server := api.New(":5000")
+	server.HandleFunc("/compare", server.Compare)
+  server.Start()
 }
