@@ -47,6 +47,11 @@ func (api *API) Compare(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	for _, r := range response {
+		r.CompareTwoFilesInDir()
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
