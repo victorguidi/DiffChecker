@@ -1,5 +1,4 @@
 ## Build the backend with:
-
 ``` bash
 docker buildx build -t docdiff --target prod .
 ```
