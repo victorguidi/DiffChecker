@@ -149,9 +149,12 @@ func (api *API) Compare(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, r := range response {
-		r.CompareTwoFilesInDir()
+		if err := r.CompareTwoFilesInDir(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		r.Author = email[0]
-		api.db.InsertDiff(r)
+		go api.db.InsertDiff(r)
 	}
 
 	json.NewEncoder(w).Encode(response)

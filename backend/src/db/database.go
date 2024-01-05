@@ -1,6 +1,7 @@
 package db
 
 import (
+	"log"
 	"time"
 
 	"context"
@@ -62,7 +63,7 @@ func (d *DB) InsertDiff(diff interface{}) error {
 	defer cancel()
 	_, err := d.Collection.InsertOne(ctx, diff)
 	if err != nil {
-		return err
+		log.Default().Printf("Error inserting diff: %v", err)
 	}
 	return nil
 }
