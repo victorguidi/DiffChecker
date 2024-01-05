@@ -1,0 +1,49 @@
+trigger:
+- dev
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+- job: BuildAndTest
+  displayName: 'Build, Test, and Scan'
+  steps:
+  - checkout: self
+
+  # - script: |
+  #     docker buildx build -t front:latest --target frontend .
+  #   displayName: 'Build Docker Image Front'
+
+  - script: |
+      docker buildx build -t back:latest --target prod .
+    displayName: 'Build Docker Image Back'
+
+  - script: |
+      # docker save -o front.tar front:latest
+      docker save -o back.tar back:latest
+      curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+    displayName: 'Install Syft'
+
+  - script: |
+      # syft -o cyclonedx-json=front_sbom.json front.tar
+      syft -o cyclonedx-json=back_sbom.json back.tar
+    displayName: 'Generate SBOM with Syft'
+
+  - script: |
+      curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+    displayName: 'Install Grype'
+
+  - script: |
+      currentDate=$(date '+%Y%m%d_%H%M%S')
+      # grype sbom:front_sbom.json > front_grype_results_$currentDate.txt
+      grype sbom:back_sbom.json > back_grype_results_$currentDate.txt
+    displayName: 'Scan for Vulnerabilities with Grype and Save Results'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(System.DefaultWorkingDirectory)'
+      ArtifactName: 'GrypeScanResults'
+      publishLocation: 'Container'
+
+

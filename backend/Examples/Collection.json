@@ -1,0 +1,133 @@
+{
+	"info": {
+		"_postman_id": "e8b8ff6b-68f7-4bec-90c4-6f3a7ed00943",
+		"name": "DocDiff",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28910116"
+	},
+	"item": [
+		{
+			"name": "Compare",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "files",
+							"type": "file",
+							"src": "/home/kun/Downloads/Anhembi/OOP/OOP_4.pdf"
+						},
+						{
+							"key": "files",
+							"type": "file",
+							"src": "/home/kun/Downloads/Anhembi/OOP/OOP_1.pdf"
+						},
+						{
+							"key": "files",
+							"type": "file",
+							"src": [],
+							"disabled": true
+						},
+						{
+							"key": "files",
+							"type": "file",
+							"src": [],
+							"disabled": true
+						},
+						{
+							"key": "email",
+							"value": "victor.guidi@scaladatacenters.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:5000/compare",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"compare"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FindBy",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/findone?id=10aeb8bf-3cbf-480f-9b11-98a94a575bb8",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"findone"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "10aeb8bf-3cbf-480f-9b11-98a94a575bb8"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"10aeb8bf-3cbf-480f-9b11-98a94a575bb8\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/findall?email=victor.guidi@scaladatacenters.com",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"findall"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "victor.guidi@scaladatacenters.com",
+							"description": "Opcional"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
