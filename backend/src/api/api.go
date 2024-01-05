@@ -121,6 +121,14 @@ func (api *API) Compare(w http.ResponseWriter, r *http.Request) {
 	files := r.MultipartForm.File["files"]
 	email := r.MultipartForm.Value["email"]
 
+	type Query struct {
+		Author string `validate:"email"`
+	}
+	if err := validate.Struct(Query{Author: email[0]}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	if (len(files) < 2 || len(files) > 10) || len(files)%2 != 0 {
 		http.Error(w, "Please upload 2 to 10 files", http.StatusBadRequest)
 		return
