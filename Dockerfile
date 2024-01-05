@@ -27,6 +27,7 @@ RUN adduser -D -H -h /app appuser # This steps are for security reason
 RUN chown -R appuser /app && \
     chmod -R 755 /app
 USER appuser
+ENV MONGO_URI=${MONGO_URI}
 COPY --from=build /app/docdiff /app/docdiff
 EXPOSE 5000
 CMD ["./docdiff"]

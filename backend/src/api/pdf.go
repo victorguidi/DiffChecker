@@ -23,6 +23,7 @@ var (
 
 type Response struct {
 	Id      string    `json:"id"`
+	Author  string    `json:"author"`
 	Files   []string  `json:"files"`
 	Date    string    `json:"date"`
 	Changes []Changes `json:"changes"`

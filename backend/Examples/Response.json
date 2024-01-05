@@ -1,6 +1,7 @@
 [
   {
     "id": "1a2b3c4d-5e6f-7g8h-9i10-j1k2l3m4n5o6",
+    "author": "victor.guidi@scaladatacenters.com",
     "files": [
       "file1.txt",
       "file2.txt"

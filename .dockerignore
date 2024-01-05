@@ -1,4 +1,5 @@
 backend/Examples/
 backend/files/
 backend/Makefile
+.env
 
